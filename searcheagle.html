@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>🦅 南二團 小隊出席狀況 🦅</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      background: linear-gradient(to bottom right, #f9f9f9, #e6f7ff);
+      color: #333;
+      padding: 40px 20px;
+      margin: 0;
+      text-align: center;
+    }
+    h1 {
+      font-size: 1.8em;
+      margin-bottom: 30px;
+      color: #3c6478;
+    }
+    .card {
+      background-color: white;
+      max-width: 500px;
+      margin: 0 auto 20px;
+      padding: 30px;
+      border-radius: 15px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+      text-align: left;
+    }
+    .card label {
+      display: block;
+      margin-bottom: 15px;
+      font-weight: bold;
+    }
+    .card select {
+      width: 100%;
+      padding: 8px;
+      margin-top: 5px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 1em;
+    }
+    .card button {
+      display: block;
+      width: 100%;
+      padding: 10px 0;
+      margin-top: 10px;
+      font-size: 1em;
+      color: white;
+      background-color: #47a7f5;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    .card button:hover {
+      background-color: #358ac9;
+    }
+    ul#results { list-style: none; padding: 0; margin: 0; }
+    ul#results li {
+      padding: 8px;
+      margin: 6px auto;
+      max-width: 500px;
+      border-radius: 8px;
+      background-color: #f1f8ff;
+      border-left: 6px solid #47a7f5;
+      text-align: left;
+      font-size: 1em;
+    }
+    .status-present { color: green; font-weight: bold; }
+    .status-absent  { color: red; font-weight: bold; }
+    .status-unfilled { color: gray; font-style: italic; }
+  </style>
+</head>
+<body>
+  <h1>🦅 荒野保護協會親子團南二團 小隊出席狀況 🦅</h1>
+  <div class="card">
+    <label for="groupSelect">團別</label>
+    <select id="groupSelect">
+      <option value="">--請選擇團別--</option>
+      <option value="翔鷹團">翔鷹團</option>
+    </select>
+    <label for="subGroupSelect">分隊</label>
+    <select id="subGroupSelect">
+      <option value="">--請先選擇團別--</option>
+    </select>
+    <button id="searchBtn">搜尋</button>
+  </div>
+  <ul id="results"></ul>
+
+  <script>
+    // 完整團隊資料
+    const teamData = {
+      eagle: {
+        "翔鷹": [
+          { family: "1 鳳凰 / 米蟲", child: "夏天" },
+          { family: "2 西洋山葵 / 檸檬", child: "櫻花" },
+          { family: "5 長臂猿 / 孔雀魚", child: "小蜜蜂" },
+          { family: "6 黑熊 / 土豆仁", child: "鼴鼠" },
+          { family: "7 錦鯉 / 曼波魚", child: "小魚兒" },
+          { family: "8 灰熊 / 相思樹", child: "含羞草" },
+          { family: "8 灰熊 / 相思樹", child: "穿山甲" },
+          { family: "9 藍鯨 / 向日葵", child: "犀牛" },
+          { family: "10 白頭翁 / 牡羊座", child: "小雨燕" },
+          { family: "13 鯨魚 / 山竹", child: "白熊" },
+          { family: "14 石頭 / 毛西番蓮", child: "小螳螂" },
+          { family: "15 石虎 / 藍花藤", child: "短耳貓" },
+          { family: "20 櫻花鹿", child: "梅花兔" },
+          { family: "30 二氧化碳 / 小柚子", child: "領角鴞" }
+        ]
+      }
+    };
+    // 團別對應 key
+    const groupMap = { '小蟻團':'ant','炫蜂團':'bee','奔鹿團':'deer','翔鷹團':'eagle' };
+
+    // 主表 URL
+    const SHEET_URL = 'https://opensheet.elk.sh/13v4T864SSZGSoNiIPGOY12mfzT2q5sbvDrarusC_zLE/鷹';
+
+    function convertToOpensheet(url) {
+      const m = url.match(/\/d\/([^\/]+)/);
+      return m
+        ? `https://opensheet.elk.sh/${m[1]}/%E8%A1%A8%E5%96%AE%E5%9B%9E%E6%87%89%201`
+        : '';
+    }
+
+    async function loadSheetsFromSheet() {
+      const res = await fetch(SHEET_URL);
+      const raw = await res.json();
+      return raw.map(item => ({
+        name: `${item.month} ${item.title}`,
+        url: convertToOpensheet(item.response_url || item.form_url)
+      }));
+    }
+    const groupSelect    = document.getElementById('groupSelect');
+    const subGroupSelect = document.getElementById('subGroupSelect');
+    const searchBtn      = document.getElementById('searchBtn');
+    const results        = document.getElementById('results');
+
+    // 動態生出分隊
+    groupSelect.addEventListener('change', () => {
+      const key = groupMap[groupSelect.value.trim()];
+      subGroupSelect.innerHTML = '<option value="">--請選擇分隊--</option>';
+      if (!teamData[key]) return;
+      Object.keys(teamData[key]).forEach(sub => {
+        const opt = document.createElement('option');
+        opt.value = sub;
+        opt.textContent = sub;
+        subGroupSelect.appendChild(opt);
+      });
+    });
+
+    // 查詢
+    searchBtn.addEventListener('click', async () => {
+      results.innerHTML = '';
+      const grp  = groupSelect.value.trim();
+      const type = subGroupSelect.value.trim();
+      if (!grp || !type) {
+        return alert('請先選擇團別與分隊');
+      }
+
+      const entries = teamData[groupMap[grp]][type] || [];
+      const backup  = { bee:'炫蜂團', ant:'小蟻團', deer:'奔鹿團', eagle:'翔鷹團' }[groupMap[grp]] || '';
+      const sheets  = await loadSheetsFromSheet();
+
+      for (const sheet of sheets) {
+        // family|child 為 key
+        const statusMap = {};
+        entries.forEach(e => {
+          const k = `${e.family.trim()}|${e.child.trim()}`;
+          statusMap[k] = { ...e, filled:false, submitted:false, status:'' };
+        });
+
+        let data;
+        try {
+          const resp = await fetch(sheet.url + '?t=' + Date.now(), { cache:'no-store' });
+          data = await resp.json();
+        } catch {
+          results.innerHTML += `<li>${sheet.name}：⚠️ 查詢失敗</li>`;
+          continue;
+        }
+
+        data.forEach(row => {
+          const vals = Object.values(row);
+          const fam  = (vals[1]  || '').trim();
+          entries.forEach(e => {
+            if (fam !== e.family.trim()) return;
+
+            for (let i = 0; i < 3; i++) {
+              const child = (vals[2 + i*3] || '').trim();
+              const squad = (vals[3 + i*3] || '').trim();
+              const st    = (vals[4 + i*3] || '出席').trim();
+
+              if ((squad === type || squad === backup) && child === e.child.trim()) {
+                const k = `${e.family.trim()}|${e.child.trim()}`;
+                statusMap[k] = { ...statusMap[k], filled:true, submitted:true, status:st };
+              }
+            }
+          });
+        });
+
+        // 標題
+        results.innerHTML += `
+          <li style="
+            background:#e0f0ff;
+            padding:10px;
+            border-radius:8px;
+            font-weight:bold;
+            color:#2a5d9f;
+            margin-top:20px
+          ">
+            ${sheet.name}｜${type}小隊出席狀況：
+          </li>`;
+
+        // 列出每組
+        entries.forEach(e => {
+          const k = `${e.family.trim()}|${e.child.trim()}`;
+          const s = statusMap[k];
+          let line;
+          if (s.filled) {
+            const ok = s.status.includes('出席');
+            line = `${s.family} _ ${s.child}：<span class="${ok?'status-present':'status-absent'}">${ok?'✅ 出席':'❌ 請假'}</span>`;
+          } else if (s.submitted) {
+            line = `${s.family} _ ${s.child}：<span class="status-unfilled">⚠️ 有填表，但未填此小隊</span>`;
+          } else {
+            line = `${s.family} _ ${s.child}：<span class="status-unfilled">未填寫</span>`;
+          }
+          results.innerHTML += `<li>${line}</li>`;
+        });
+      }
+    });
+  </script>
+</body>
+</html>
