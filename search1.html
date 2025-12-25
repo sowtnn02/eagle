@@ -98,7 +98,35 @@
   </div>
 
   <!-- 你的團員名單，需在其中定義 userOptions 物件 -->
-  <script src="team-data114.js"></script>
+  <script src="https://sowtnn02.github.io/home/team-data.js"></script>
+
+  <script>
+    // 2. 建立轉換函式：將 teamData (新物件格式) 自動轉為 userOptions (舊字串格式)
+    // 這樣下方的查詢邏輯完全不用動
+    var userOptions = {};
+
+    if (typeof teamData !== 'undefined') {
+      // 遍歷所有團別 (ant, bee, deer, eagle...)
+      for (var groupKey in teamData) {
+        userOptions[groupKey] = {};
+        
+        // 為了維持選單操作體驗，加入一個空的預設選項 (讓第二個選單預設不選取)
+        userOptions[groupKey][""] = [];
+
+        // 遍歷該團底下的所有分隊 (ex: 小黑蟻, 泥壺蜂...)
+        var subGroups = teamData[groupKey];
+        for (var subGroupName in subGroups) {
+          // map: 只抓取 family (家庭名稱) 欄位，轉成純字串陣列
+          userOptions[groupKey][subGroupName] = subGroups[subGroupName].map(function(member) {
+            return member.family;
+          });
+        }
+      }
+      console.log("✅ 名單載入成功！", userOptions);
+    } else {
+      alert("⚠️ 無法讀取名單資料，請檢查 https://sowtnn02.github.io/home/team-data.js 是否存在。");
+    }
+  </script>
 
 <script>
     // 🔴 1. 設定你的 GAS 網址
