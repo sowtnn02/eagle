@@ -5,242 +5,310 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>🦅 荒野親子南二團 🦅</title>
   <style>
-    body {
-      font-family: "Segoe UI", sans-serif;
-      background: #f5f5f5;
-      margin: 0;
-      padding: 0;
-      color: #333;
+    /* --- 基礎樣式 --- */
+    body { font-family: "Segoe UI", sans-serif; background: #f5f5f5; margin: 0; padding: 0; color: #333; }
+    h1 { text-align: center; background-color: #ffffff; padding: 1.5em 1em; margin: 0; font-size: 1.8em; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1); color: #4a5d23; }
+    
+    /* 容器設定 */
+    .container { 
+      display: flex; 
+      flex-wrap: wrap; 
+      justify-content: center; 
+      align-items: flex-start; 
+      padding: 2em; 
+      max-width: 1280px; 
+      margin: auto; 
+      gap: 20px; 
+    }
+    
+    /* 左側欄位 */
+    .left-column { 
+      flex: 1; 
+      min-width: 400px; 
+      display: flex; 
+      flex-direction: column; 
+      gap: 20px; 
     }
 
-    h1 {
-      text-align: center;
-      background-color: #ffffff;
-      padding: 1.5em 1em;
-      margin: 0;
-      font-size: 1.8em;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-      color: #4a5d23;
+    /* 右側欄位 */
+    .right-column { 
+      flex: 0 0 320px; 
+      display: flex; 
+      flex-direction: column; 
+      gap: 1.5em; 
     }
+    
+    .content-box { background: #fff; padding: 15px; border-radius: 12px; box-shadow: 0 6px 10px rgba(0, 0, 0, 0.05); }
 
-    .container {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      align-items: flex-start;
-      padding: 2em;
-      max-width: 1200px;
-      margin: auto;
-      gap: 2em;
+    /* --- 公告欄位樣式 --- */
+    .news-grid { display: flex; gap: 15px; }
+    .news-column { flex: 1; padding: 10px; border-radius: 8px; display: flex; flex-direction: column; }
+    
+    /* 翔鷹團專屬樣式 (靛藍色系) */
+    .news-eagle { 
+        background: #e8eaf6; /* 極淺的藍紫色 */
+        border: 1px solid #c5cae9; /* 淺藍邊框 */
+    } 
+
+    .news-header {
+      font-weight: bold; text-align: center; margin-bottom: 10px; padding-bottom: 5px;
+      border-bottom: 2px solid rgba(0,0,0,0.05); font-size: 1.1em; color: #283593;
     }
+    
+    /* 捲軸設定 */
+    .news-scroll-box { max-height: 300px; overflow-y: auto; padding-right: 5px; min-height: 50px; }
+    .news-scroll-box::-webkit-scrollbar { width: 6px; }
+    .news-scroll-box::-webkit-scrollbar-track { background: rgba(0,0,0,0.05); border-radius: 3px; }
+    .news-scroll-box::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.2); border-radius: 3px; }
 
-    .left-column {
-      flex: 1;
-      min-width: 300px;
+    .news-item {
+      background: #fff; margin-bottom: 8px; padding: 12px; border-radius: 6px;
+      cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; border: 1px solid rgba(0,0,0,0.05);
     }
+    .news-item:hover { transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+    .news-title { font-size: 1em; font-weight: bold; color: #333; line-height: 1.4; }
 
-    .right-column {
-      flex: 0 0 250px;
-      display: flex;
-      flex-direction: column;
-      gap: 1.5em;
+    /* --- 懸浮視窗 (Modal) --- */
+    .modal-overlay {
+      display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0, 0, 0, 0.6); z-index: 2000;
+      justify-content: center; align-items: center; padding: 20px;
     }
-
-    .form-box {
-      background: #e9f6f0;
-      border-radius: 12px;
-      padding: 20px;
-      margin-bottom: 20px;
-      box-shadow: 0 6px 10px rgba(0, 0, 0, 0.05);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      border-left: 5px solid #5ca08e;
+    .modal-content {
+      background: #fff; width: 100%; max-width: 700px; max-height: 90vh;
+      border-radius: 12px; overflow-y: auto; position: relative;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.2); animation: fadeIn 0.3s ease;
     }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-    .month {
-      font-size: 1.1em;
-      font-weight: bold;
-      color: #2c5d47;
+    .modal-header { padding: 20px; background: #f9f9f9; border-bottom: 1px solid #eee; position: sticky; top: 0; z-index: 10; }
+    .modal-title { font-size: 1.4em; font-weight: bold; color: #283593; margin: 0; }
+    .modal-date { color: #666; font-size: 0.9em; margin-top: 5px; }
+    .close-btn { position: absolute; top: 15px; right: 15px; background: none; border: none; font-size: 2em; cursor: pointer; color: #888; line-height: 0.8; }
+    .modal-body { padding: 25px; line-height: 1.6; }
+
+    .section-block { margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px dashed #eee; }
+    .section-title { font-weight: bold; color: #2c5d47; margin-bottom: 10px; font-size: 1.1em; display:flex; align-items:center; gap:8px;}
+
+    .check-list { list-style: none; padding: 0; margin: 0; }
+    .check-list li { position: relative; padding-left: 28px; margin-bottom: 8px; }
+    .check-list li::before { content: '✔'; position: absolute; left: 0; top: 0; color: #5ca08e; font-weight: bold; }
+
+    .kid-list-box { background: #eef9f5; border: 2px dashed #5ca08e; border-radius: 12px; padding: 15px; margin-top: 15px; }
+    .kid-list li { font-size: 1.15em; color: #333; padding-left: 32px; }
+    .kid-list li::before { content: '🎒'; top: 1px; }
+
+    .adult-list-box { background: #f4f6f8; border: 2px solid #dde1e5; border-radius: 12px; padding: 15px; margin-top: 15px; }
+    .adult-list li { font-size: 1em; color: #444; }
+    
+    .link-text { color: #5ca08e; text-decoration: underline; font-weight: bold; word-break: break-all; }
+    .link-text:hover { color: #365119; }
+
+    /* --- RWD --- */
+    @media (max-width: 960px) {
+      .container { padding: 1em; gap: 1em; }
+      .left-column { min-width: 0; }
     }
-
-    .title {
-      font-size: 0.95em;
-      color: #555;
-    }
-
-    .btn {
-      background-color: #5ca08e;
-      color: white;
-      padding: 8px 14px;
-      border: none;
-      border-radius: 6px;
-      text-decoration: none;
-      font-weight: bold;
-      transition: background 0.3s ease;
-    }
-
-    .btn:hover {
-      background-color: #468571;
-    }
-
-    .query-btn {
-      background: #fdf6e3;
-      padding: 20px;
-      border-radius: 12px;
-      font-size: 1.1em;
-      text-align: center;
-      text-decoration: none;
-      color: #4a5d23;
-      border: 1px solid #ddd;
-      transition: background 0.3s ease;
-    }
-
-    .query-btn:hover {
-      background: #f5edcf;
-    }
-
-    /* --- 新增：行事曆區塊樣式 --- */
-    .calendar-section {
-      max-width: 1200px;
-      margin: 0 auto 3em auto; /* 底部留白 */
-      padding: 0 2em;
-    }
-
-    .section-title {
-      text-align: center;
-      color: #4a5d23;
-      margin-bottom: 1em;
-      border-bottom: 2px solid #ddd;
-      padding-bottom: 10px;
-      font-size: 1.5em;
-    }
-
-    .calendar-grid {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 2em;
-      justify-content: center; /* 讓單一行事曆置中 */
-    }
-
-    .calendar-wrapper {
-      flex: 0 1 800px; /* 設定基礎寬度，最大不超過 800px */
-      min-width: 300px; 
-      background: #fff;
-      padding: 15px;
-      border-radius: 12px;
-      box-shadow: 0 6px 10px rgba(0, 0, 0, 0.05);
-    }
-
-    .calendar-wrapper h3 {
-      text-align: center;
-      color: #2c5d47;
-      margin-top: 0;
-      margin-bottom: 15px;
-    }
-
-    .calendar-frame {
-      width: 100%;
-      height: 600px; /* 單一行事曆可以稍微高一點 */
-      border: 0;
-      border-radius: 8px;
-    }
-    /* -------------------------- */
-
     @media (max-width: 768px) {
-      .container, .calendar-section {
-        flex-direction: column;
-        padding: 1em;
-      }
-
-      .right-column {
-        flex: 1;
-        width: 100%;
-      }
-
-      .calendar-wrapper {
-        width: 100%;
-      }
-      
-      .calendar-frame {
-        height: 500px; /* 手機版高度稍微縮減 */
-      }
+      .container { flex-direction: column; }
+      .left-column { width: 100%; }
+      .right-column { width: 100%; flex: auto; order: -1; }
+      .news-grid { flex-direction: column; }
+      .news-scroll-box { max-height: 200px; }
     }
-
-    .home-btn{
-      position:fixed;
-      top:18px;
-      right:18px;
-      background:#4a5d23;
-      color:#fff;
-      padding:8px 14px;
-      border-radius:8px;
-      font-weight:bold;
-      text-decoration:none;
-      box-shadow:0 3px 8px rgba(0,0,0,.15);
-      z-index:1000;
-      transition:background .25s;
-    }
-    .home-btn:hover{ background:#365119; }
+    .home-btn{position:fixed;top:18px;right:18px;background:#4a5d23;color:#fff;padding:8px 14px;border-radius:8px;font-weight:bold;text-decoration:none;box-shadow:0 3px 8px rgba(0,0,0,.15);z-index:1000;}
+    
+    /* 既有樣式保留 */
+    .calendar-title { text-align: center; color: #283593; margin: 0 0 10px 0; border-bottom: 2px solid #ddd; padding-bottom: 10px; }
+    .calendar-frame { width: 100%; height: 600px; border: 0; }
+    .form-box { background: #e9f6f0; border-radius: 12px; padding: 20px; margin-bottom: 15px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05); display: flex; justify-content: space-between; align-items: center; border-left: 5px solid #5ca08e; }
+    .month { font-size: 1.1em; font-weight: bold; color: #2c5d47; }
+    .title { font-size: 0.95em; color: #555; }
+    .btn { background-color: #5ca08e; color: white; padding: 8px 14px; border: none; border-radius: 6px; text-decoration: none; font-weight: bold; white-space: nowrap; }
+    .action-buttons { display: flex; flex-direction: column; gap: 10px; }
+    .query-btn { background: #fdf6e3; padding: 15px; border-radius: 12px; font-size: 1.1em; text-align: center; text-decoration: none; color: #4a5d23; border: 1px solid #ddd; font-weight: bold; }
   </style>
 </head>
 <body>
   <a href="https://sowtnn02.github.io/home/index" class="home-btn">🏠 回首頁</a>
-  <h1>
-    <a href="index.html" style="text-decoration: none; color: inherit;">
-      荒野保護協會親子團南二團<br>🦅 翔鷹 🦅
-    </a>
-  </h1>
+  <h1><a href="index.html" style="text-decoration: none; color: inherit;">荒野保護協會親子團南二團<br>🦅 （翔 鷹 團）🦅</a></h1>
+  
   <div class="container">
-    <div class="left-column" id="form-list">載入中...</div>
+    
+    <div class="left-column">
+      <div class="content-box">
+        <h3 style="text-align:center; color:#283593; margin-top:0;">📢 團務佈告欄</h3>
+        <div class="news-grid">
+          
+          <div class="news-column news-eagle">
+            <div class="news-header"><span style="color:#3f51b5;">●</span> 翔鷹團</div>
+            <div id="eagle-news-list" class="news-scroll-box">
+              <div style="text-align:center; padding:20px; color:#aaa;">載入中...</div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="content-box">
+        <h3 class="calendar-title">📅 團集會行事曆</h3>
+        <iframe src="https://calendar.google.com/calendar/embed?height=600&wkst=2&ctz=Asia%2FTaipei&showPrint=0&showTitle=0&showTz=0&src=YjRjNjljZjRiZTU2MTgxYjgyMjc5ZWQyMGI2NTJjNTgzNDc4YzE5MGIzZmM3MDkzYjhjNWUxM2Y0YmM1MWUzMEBncm91cC5jYWxlbmRhci5nb29nbGUuY29t&color=%233f51b5" class="calendar-frame" frameborder="0" scrolling="no"></iframe>
+      </div>
+    </div>
+
     <div class="right-column">
-      <a class="query-btn" href="search1.html">🔎 查詢出席紀錄</a>
-      <a class="query-btn" href="searchallteam.html">📋 小隊出席總覽</a>
+      <div id="form-list"><div style="text-align: center; color: #666; padding: 20px;">載入表單中...</div></div>
+      <div class="action-buttons">
+        <a class="query-btn" href="search1.html">🔎 查詢出席紀錄</a>
+        <a class="query-btn" href="searchallteam.html">📋 小隊出席總覽</a>
+      </div>
     </div>
   </div>
 
-  <div class="calendar-section">
-    <h2 class="section-title">📅 團集會行事曆</h2>
-    <div class="calendar-grid">
-      
-      <div class="calendar-wrapper">
-        <h3>🦅 翔鷹團</h3>
-        <iframe 
-          src="https://calendar.google.com/calendar/embed?src=b4c69cf4be56181b82279ed20b652c583478c190b3fc7093b8c5e13f4bc51e30%40group.calendar.google.com&ctz=Asia%2FTaipei" 
-          class="calendar-frame"
-          frameborder="0" 
-          scrolling="no">
-        </iframe>
+  <div id="news-modal" class="modal-overlay">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button class="close-btn" onclick="closeModal()">×</button>
+        <h2 class="modal-title" id="m-title">標題</h2>
+        <div class="modal-date" id="m-date">日期</div>
       </div>
-
+      <div class="modal-body" id="m-body">
+        </div>
     </div>
   </div>
 
   <script>
-    const SHEET_URL = "https://opensheet.elk.sh/13v4T864SSZGSoNiIPGOY12mfzT2q5sbvDrarusC_zLE/%E9%B7%B9";
+    const SHEET_ID = "1_yffIOhto8dSwRCcmndN1KucMddrcqcuNgGM7yU9gH4";
 
-    async function loadForms() {
-      const res = await fetch(SHEET_URL);
-      const data = await res.json();
-      const container = document.getElementById("form-list");
-      container.innerHTML = "";
-
-      data.sort((a, b) => a.month.localeCompare(b.month)); // 升序排序
-
-      data.forEach(item => {
-        const div = document.createElement("div");
-        div.className = "form-box";
-        div.innerHTML = `
-          <div style="display: flex; flex-direction: column;">
-            <div class="month">${item.month}</div>
-            <div class="title">${item.title}</div>
-          </div>
-          <a class="btn" href="${item.form_url}" target="_blank">填寫表單</a>
-        `;
-        container.appendChild(div);
+    function formatContent(text) {
+      if (!text) return "";
+      const urlRegex = /(https?:\/\/[^\s]+)/g;
+      const linkedText = text.replace(urlRegex, function(url) {
+        return `<a href="${url}" target="_blank" class="link-text">${url}</a>`;
       });
+      return linkedText.replace(/\n/g, "<br>");
     }
 
+    async function fetchNews(group, containerId, type) {
+      const url = `https://opensheet.elk.sh/${SHEET_ID}/${group}_News`;
+      const container = document.getElementById(containerId);
+      
+      try {
+        const res = await fetch(url);
+        if (!res.ok) throw new Error("API Error");
+        let data = await res.json();
+
+        const today = new Date();
+        today.setHours(0, 0, 0, 0); 
+
+        data = data.filter(item => {
+          const startDate = new Date(item.date);
+          startDate.setHours(0, 0, 0, 0);
+          if (startDate > today) return false; 
+          if (!item.expiryDate) return true;
+          const expiry = new Date(item.expiryDate);
+          expiry.setHours(0, 0, 0, 0);
+          return expiry >= today; 
+        });
+
+        data.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+        let html = "";
+        if (data.length === 0) {
+          html = "<div style='text-align:center; color:#999; font-size:0.9em; padding:20px;'>目前無公告</div>";
+        } else {
+          data.forEach(item => {
+            item.type = type; 
+            html += `
+              <div class="news-item" onclick='openModal(${JSON.stringify(item)})'>
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                   <span class="news-date" style="margin-bottom:0;">${item.date}</span>
+                   <span style="font-size:0.85em; color:#999;">${item.author ? 'by ' + item.author : ''}</span>
+                </div>
+                <div class="news-title">${item.title}</div>
+              </div>
+            `;
+          });
+        }
+        container.innerHTML = html;
+
+      } catch (error) {
+        console.error("無法載入公告:", error);
+        container.innerHTML = "<div style='text-align:center; color:red; padding:10px;'>載入失敗</div>";
+      }
+    }
+
+    // 載入翔鷹公告
+    fetchNews("Eagle", "eagle-news-list", "eagle");
+
+    // Modal 邏輯
+    function openModal(item) {
+      document.getElementById("m-title").innerText = item.title;
+      const authorText = item.author ? `&nbsp;&nbsp;<span style="font-size:0.9em; color:#5ca08e;">(發布者：${item.author})</span>` : "";
+      document.getElementById("m-date").innerHTML = "發布日期：" + item.date + authorText;
+      
+      let bodyHtml = "";
+
+      if(item.contentA) {
+        bodyHtml += `
+          <div class="section-block">
+            <div class="section-title">📍 行程與內容</div>
+            <div>${formatContent(item.contentA)}</div>
+          </div>`;
+      }
+      if(item.contentB) {
+        bodyHtml += `
+          <div class="section-block" style="background:#fffbe6; padding:15px; border-radius:8px;">
+            <div class="section-title">🔥 物資與人力募集</div>
+            <div>${formatContent(item.contentB)}</div>
+          </div>`;
+      }
+      if(item.noteD || item.listD) {
+        bodyHtml += `<div class="adult-list-box">`;
+        bodyHtml += `<div class="section-title">🧑 大人 / 導引 攜帶清單</div>`;
+        if(item.noteD) bodyHtml += `<div style="margin-bottom:10px; color:#555; font-weight:500;">${item.noteD}</div>`;
+        if(item.listD) {
+          const listItems = item.listD.split('\n').map(line => `<li>${line}</li>`).join('');
+          bodyHtml += `<ul class="check-list adult-list">${listItems}</ul>`;
+        }
+        bodyHtml += `</div>`;
+      }
+      if(item.noteC || item.listC) {
+        bodyHtml += `<div class="kid-list-box">`;
+        bodyHtml += `<div class="section-title">🦅 小鷹背包檢查</div>`;
+        if(item.noteC) bodyHtml += `<div style="margin-bottom:10px; font-weight:bold; color:#d81b60;">${item.noteC}</div>`;
+        if(item.listC) {
+          const listItems = item.listC.split('\n').map(line => `<li>${line}</li>`).join('');
+          bodyHtml += `<ul class="check-list kid-list">${listItems}</ul>`;
+        }
+        bodyHtml += `</div>`;
+      }
+
+      document.getElementById("m-body").innerHTML = bodyHtml;
+      document.getElementById("news-modal").style.display = "flex";
+    }
+
+    function closeModal() { document.getElementById("news-modal").style.display = "none"; }
+    document.getElementById("news-modal").addEventListener("click", function(e) { if(e.target === this) closeModal(); });
+
+    // 載入翔鷹表單 (URL: /鷹)
+    const SHEET_URL = "https://opensheet.elk.sh/13v4T864SSZGSoNiIPGOY12mfzT2q5sbvDrarusC_zLE/%E9%B7%B9";
+    async function loadForms() {
+      try {
+        const res = await fetch(SHEET_URL);
+        const data = await res.json();
+        const container = document.getElementById("form-list");
+        container.innerHTML = "";
+        if (data.length === 0) { container.innerHTML = "<div style='text-align:center; padding:20px;'>目前沒有開放的表單</div>"; return; }
+        data.sort((a, b) => a.month.localeCompare(b.month));
+        data.forEach(item => {
+          const div = document.createElement("div");
+          div.className = "form-box";
+          div.innerHTML = `<div style="display: flex; flex-direction: column;"><div class="month">${item.month}</div><div class="title">${item.title}</div></div><a class="btn" href="${item.form_url}" target="_blank">填寫</a>`;
+          container.appendChild(div);
+        });
+      } catch (error) { console.error("無法載入表單:", error); container.innerHTML = "<div style='text-align:center; color:red;'>無法載入表單</div>"; }
+    }
     loadForms();
   </script>
 </body>
