@@ -132,12 +132,12 @@
     // 🔴 1. 設定你的 GAS 網址
     const MY_PROXY_URL = "https://script.google.com/macros/s/AKfycbxmzTs-dGe8rlGjeaUJH44bravhTNccqFsfImSz_wV-bSniF-E1aOqZ6nyShvyVYAtFCQ/exec";
 
-    // 🔴 2. 設定你的主資料庫 ID
-    const MASTER_DB_ID = "13v4T864SSZGSoNiIPGOY12mfzT2q5sbvDrarusC_zLE"; 
+    // 🔴 2. 設定你的主資料庫 ID (已更新為新表單)
+    const MASTER_DB_ID = "1rsQZORmQldGeco9YRNUn9jaO10ogvXpsVSqjk4Z8Ur0"; 
 
     // -------------- 讀取主資料庫 (新版 Proxy) --------------
     async function loadSheetsFromSheet() {
-      // 假設主資料庫的分頁名稱是 "鷹"
+      // 🟢 鎖定讀取 "鷹" 分頁
       const masterSheetName = "鷹"; 
       const url = `${MY_PROXY_URL}?targetId=${MASTER_DB_ID}&sheetName=${encodeURIComponent(masterSheetName)}`;
 
@@ -151,12 +151,29 @@
           return [];
         }
 
-        // 📝 這裡對應你試算表的「第一列標題」
-        // 如果你的標題是中文，這裡就要用中文抓取
-        return raw.map(item => ({
-          // 組合顯示名稱：月份 + 標題
+        // --- 🟢 新增：日期過濾邏輯 ---
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        const validData = raw.filter(item => {
+           // 1. 檢查上架日
+           if (item.date) {
+             const startDate = new Date(item.date);
+             startDate.setHours(0, 0, 0, 0);
+             if (startDate > today) return false; 
+           }
+           // 2. 檢查下架日
+           if (item.expiryDate) {
+             const endDate = new Date(item.expiryDate);
+             endDate.setHours(0, 0, 0, 0);
+             if (endDate < today) return false; 
+           }
+           return true;
+        });
+
+        // 轉換格式
+        return validData.map(item => ({
           name: `${item['month'] || ''} ${item['title'] || ''}`, 
-          // 產生讀取目標表單的 Proxy 連結：抓取 E 欄 "表單回覆連結"
           url: toMyProxyUrl(item['response_url']) 
         }));
 
@@ -170,20 +187,16 @@
     // 轉換連結函式
     function toMyProxyUrl(originalUrl) {
       if (!originalUrl) return "";
-      
-      // 從原始 Google Sheet 網址中提取 ID
       const match = originalUrl.match(/\/d\/(.*?)(\/|$)/);
       const targetId = match ? match[1] : "";
-      
       if (!targetId) return "";
-
-      // 指定要抓取的分頁名稱，通常表單回應預設是 "表單回應 1"
       const targetSheetName = "表單回應 1"; 
-      
       return `${MY_PROXY_URL}?targetId=${targetId}&sheetName=${encodeURIComponent(targetSheetName)}`;
     }
 
-    // -------------- 選單邏輯 (維持不變) --------------
+    // ... (以下維持原本的選單與查詢邏輯，無需變動) ...
+    
+    // -------------- 選單邏輯 --------------
     function updateTypeOptions() {
       const groupVal = document.getElementById("group").value;
       const typeSelect = document.getElementById("type");
@@ -232,7 +245,7 @@
     }
 
     // -------------- 查詢邏輯 --------------
-    function fetchWithTimeout(url, t = 8000) { // 延長秒數避免 GAS 喚醒太慢
+    function fetchWithTimeout(url, t = 8000) { 
       return Promise.race([
         fetch(url),
         new Promise((_, rej) => setTimeout(() => rej(new Error("Timeout")), t))
@@ -252,33 +265,26 @@
       resultList.innerHTML = "";
       loading.textContent = "🔍 查詢中，請稍候...";
       
-      // 1. 先抓主表
       const sheets = await loadSheetsFromSheet();
       
       if (sheets.length === 0) {
-        loading.textContent = "⚠️ 找不到任何表單紀錄，請確認資料庫連結。";
+        loading.textContent = "⚠️ 找不到任何表單紀錄，或是目前無開放的表單。";
         return;
       }
 
-      // 2. 逐一查詢
       for (const sheet of sheets) {
         const li = document.createElement("li");
         
-        // 如果該筆資料沒有連結 (可能是空行)
         if (!sheet.url || sheet.url.includes("targetId=&")) {
              continue; 
         }
 
         try {
-          // 加入 timestamp 避免快取
           const res = await fetchWithTimeout(sheet.url + "&t=" + Date.now(), 8000);
           
           if (!res.ok) throw new Error("API 回傳錯誤");
 
           const data = await res.json();
-
-          // 這裡保留你原本的邏輯：抓取第二個欄位 (索引1) 來比對名字
-          // 建議確認每個表單的第二欄是否真的是 "家庭名稱"
           const matched = data.filter(row =>
             Object.values(row)[1] && Object.values(row)[1].includes(name)
           );
@@ -288,8 +294,6 @@
             matched.forEach((row, i) => {
               const v = Object.values(row);
               const entries = [];
-              // 嘗試抓取後續欄位顯示 (出席/小隊等)
-              // 注意：這取決於表單的欄位順序，若GAS回傳順序不同可能會顯示錯亂
               for (let j = 0; j < 3; j++) {
                 const colA = v[2 + j*3];
                 const colB = v[3 + j*3];
@@ -298,7 +302,6 @@
                   entries.push(`${colB || ''} ${colA || ''} ${colC || ''}`);
                 }
               }
-              // 如果上面沒抓到東西，就直接顯示整列摘要
               if (entries.length === 0 && v.length > 2) {
                    entries.push(v.slice(2,5).join(" "));
               }
